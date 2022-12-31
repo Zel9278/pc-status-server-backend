@@ -1,3 +1,4 @@
+import "dotenv/config"
 import Server_io from "./server"
 import client from "./client"
 import { Socket } from "socket.io"
@@ -18,14 +19,13 @@ server.on("connection", (socket: Socket) => {
     console.log("test server")
 
     socket.on("hi", (data: StatusData, pass) => {
+        if (pass !== process.env.PASS) return socket.disconnect()
         clients[socket.id] = data
     })
 
-    socket.on("only", (hostname) => {
-        console.log(hostname)
+    socket.on("sync", (data: StatusData) => {
+        if (clients[socket.id]) clients[socket.id] = data
     })
-
-    socket.on("sync", (data: StatusData) => {})
 
     socket.on("disconnect", () => {
         const client: StatusData | undefined = clients[socket.id]
@@ -37,6 +37,5 @@ server.on("connection", (socket: Socket) => {
 
 setInterval(() => {
     client.emit("status", clients)
-    console.log(Object.keys(clients))
     Object.keys(clients).forEach((c) => server.to(c).emit("sync"))
 }, 1000)
