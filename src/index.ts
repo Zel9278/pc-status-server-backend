@@ -19,6 +19,7 @@ server.on("connection", (socket: Socket) => {
     console.log("test server")
 
     socket.on("hi", (data: StatusData, pass) => {
+        console.log(data, pass)
         if (pass !== process.env.PASS) return socket.disconnect()
         client.emit("toast", {
             message: `${data?.hostname} is connected`,
