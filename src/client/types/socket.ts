@@ -1,8 +1,9 @@
-import { ClientData } from "./client"
+import { ClientData, ToastData } from "./client"
 
 export interface ServerToClientEvents {
     hi: () => void
     status: (clients: ClientData) => void
+    toast: (data: ToastData) => void
 }
 
 export interface ClientToServerEvents {

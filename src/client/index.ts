@@ -15,7 +15,11 @@ const io = new Server<
     ServerToClientEvents,
     InterServerEvents,
     SocketData
->(httpServer)
+>(httpServer, {
+    cors: {
+        origin: "*",
+    },
+})
 
 httpServer.listen(PORT, () => {
     console.log(`Client side Server Listen By Port: ${PORT}`)
