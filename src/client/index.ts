@@ -22,7 +22,7 @@ const io = new Server<
 })
 
 httpServer.listen(PORT, () => {
-    console.log(`Client side Server Listen By Port: ${PORT}`)
+    console.log(`Server Listen By Port: ${PORT}`)
 })
 
 export default io
