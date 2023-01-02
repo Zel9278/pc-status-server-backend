@@ -17,7 +17,7 @@ const io = new Server<
     SocketData
 >(httpServer, {
     cors: {
-        origin: "*",
+        origin: ["*"],
     },
 })
 
