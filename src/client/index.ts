@@ -1,4 +1,4 @@
-import { createServer } from "http"
+import http from "http"
 import { Server } from "socket.io"
 import {
     ClientToServerEvents,
@@ -9,7 +9,7 @@ import {
 
 const PORT = process.env.PORT || 3000
 
-const httpServer = createServer()
+const httpServer = new http.Server()
 const io = new Server<
     ClientToServerEvents,
     ServerToClientEvents,
