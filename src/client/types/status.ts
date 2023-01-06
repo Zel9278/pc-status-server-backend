@@ -39,5 +39,5 @@ export interface StatusData {
     storage: Storage
     uptime: number
     loadavg: number[]
-    gpu: GPU
+    gpu: GPU | undefined | null
 }
