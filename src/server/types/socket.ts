@@ -1,6 +1,6 @@
 export interface ServerToClientEvents {
-    hi: () => void
-    sync: () => void
+    hi: (text: string) => void
+    sync: (text: string) => void
 }
 
 export interface ClientToServerEvents {

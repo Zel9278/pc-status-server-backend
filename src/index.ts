@@ -8,6 +8,7 @@ import { ClientData } from "./client/types/client"
 const server = Server_io(client)
 
 const statusDatas: StatusData = {
+    pass: null,
     _os: "OS Not Set",
     hostname: "hostname not set",
     version: "version not set",
@@ -18,37 +19,73 @@ const statusDatas: StatusData = {
     },
     ram: { free: 0, total: 0, percent: 0 },
     storage: { free: 0, total: 0, percent: 0 },
+    storages: null,
     uptime: 0,
     loadavg: [0, 0, 0],
     gpu: null,
+    index: 0,
+    histories: [],
 }
 
 let clients: ClientData = {}
 
 client.on("connection", (socket: Socket) => {
-    socket.emit("hi")
+    socket.emit("hi", "hello")
     console.log("test client")
 })
 
 server.on("connection", (socket: Socket) => {
-    socket.emit("hi")
+    socket.emit("hi", "hello")
     console.log("test server")
 
     socket.on("hi", (data: StatusData, pass) => {
-        console.log(data, pass)
-        if (pass !== process.env.PASS) return socket.disconnect()
+        //console.log(data, pass)
+        if ((data?.pass || pass) !== process.env.PASS)
+            return socket.disconnect()
+
+        if (
+            Object.keys(clients).filter((cli) =>
+                clients[cli]?.hostname.includes(data.hostname)
+            ).length > 0
+        ) {
+            const filteredClients = Object.keys(clients)
+                .filter((cli) => clients[cli]?.hostname.includes(data.hostname))
+                .map((cli) => clients[cli])
+            console.log(filteredClients.length)
+            data.index = filteredClients.length
+            data.hostname = `${data.hostname}_${data.index}`
+        }
+
+        data.histories = []
+        data.histories.push({
+            cpu: data.cpu,
+            ram: data.ram,
+            storage: data.storage,
+            gpu: data.gpu,
+            uptime: data.uptime,
+        })
+        clients[socket.id] = deepMarge(statusDatas, data)
+        console.log(clients[socket.id])
 
         client.emit("toast", {
             message: `${data?.hostname} is connected`,
             color: "#0508",
             toastTime: 5000,
         })
-        clients[socket.id] = deepMarge(statusDatas, data)
     })
 
     socket.on("sync", (data: StatusData) => {
-        if (clients[socket.id])
-            clients[socket.id] = deepMarge(statusDatas, data)
+        if (clients[socket.id]) {
+            if (clients[socket.id].index > 0) {
+                const _clients = Object.keys(clients).filter((cli) =>
+                    clients[cli]?.hostname.includes(data.hostname)
+                )
+                data.index = _clients.findIndex((cli) => cli === socket.id)
+                data.hostname = `${data.hostname}_${clients[socket.id].index}`
+            }
+
+            clients[socket.id] = deepMarge(clients[socket.id], data)
+        }
     })
 
     socket.on("disconnect", () => {
@@ -65,8 +102,13 @@ server.on("connection", (socket: Socket) => {
 })
 
 setInterval(() => {
-    client.emit("status", clients)
-    Object.keys(clients).forEach((c) => server.to(c).emit("sync"))
+    //delete pass to send to frontend
+    const _clients = JSON.parse(JSON.stringify(clients))
+    Object.keys(_clients).forEach((c) => {
+        delete _clients[c].pass
+    })
+    client.emit("status", _clients)
+    Object.keys(clients).forEach((c) => server.to(c).emit("sync", "sync"))
 }, 1000)
 
 function deepMarge(target: StatusData, source: StatusData): StatusData {
