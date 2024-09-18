@@ -14,12 +14,11 @@ const statusDatas: StatusData = {
     version: "version not set",
     cpu: {
         model: "cpu model not set",
-        percent: 0,
         cpus: [],
     },
-    ram: { free: 0, total: 0, percent: 0 },
-    storage: { free: 0, total: 0, percent: 0 },
-    storages: null,
+    ram: { free: 0, total: 0 },
+    swap: { free: 0, total: 0 },
+    storages: [],
     uptime: 0,
     loadavg: [0, 0, 0],
     gpu: null,
@@ -51,7 +50,7 @@ server.on("connection", (socket: Socket) => {
             const filteredClients = Object.keys(clients)
                 .filter((cli) => clients[cli]?.hostname.includes(data.hostname))
                 .map((cli) => clients[cli])
-            console.log(filteredClients.length)
+            //console.log(filteredClients.length)
             data.index = filteredClients.length
             data.hostname = `${data.hostname}_${data.index}`
         }
@@ -60,12 +59,13 @@ server.on("connection", (socket: Socket) => {
         data.histories.push({
             cpu: data.cpu,
             ram: data.ram,
-            storage: data.storage,
+            swap: data.swap,
+            storages: data.storages,
             gpu: data.gpu,
             uptime: data.uptime,
         })
         clients[socket.id] = deepMarge(statusDatas, data)
-        console.log(clients[socket.id])
+        //console.log(clients[socket.id])
 
         client.emit("toast", {
             message: `${data?.hostname} is connected`,
@@ -85,6 +85,16 @@ server.on("connection", (socket: Socket) => {
             }
 
             clients[socket.id] = deepMarge(clients[socket.id], data)
+            if (clients[socket.id].histories.length > 10)
+                clients[socket.id].histories.shift()
+            clients[socket.id].histories.push({
+                cpu: data.cpu,
+                ram: data.ram,
+                swap: data.swap,
+                storages: data.storages,
+                gpu: data.gpu,
+                uptime: data.uptime,
+            })
         }
     })
 

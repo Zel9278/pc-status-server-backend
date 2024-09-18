@@ -4,39 +4,46 @@ interface CPUData {
 interface CPU {
     model: string
     cpus: CPUData[]
-    percent: number
 }
 
 interface RAM {
     free: number
     total: number
-    percent: number
+}
+
+interface Swap {
+    free: number
+    total: number
 }
 
 interface Storage {
+    name?: string
     free: number
     total: number
-    percent: number
 }
 
 interface GPUMemory {
     free: number
     total: number
-    percent: number
 }
 interface GPU {
     name: string
     usage: number
     memory: GPUMemory
 }
+interface NetWorkData {
+    name: string
+    received: number
+    transmitted: number
+}
 
-export interface StatusHistory {
+interface HistoriesData {
     cpu: CPU
     ram: RAM
-    storage: Storage
-    gpu: GPU | undefined | null
+    swap: Swap
+    storages: Storage[]
+    gpu: GPU | null
     uptime: number
-    timestamp?: number
 }
 
 export interface StatusData {
@@ -45,12 +52,13 @@ export interface StatusData {
     version: string
     cpu: CPU
     ram: RAM
-    storage: Storage
+    swap: Swap
+    storages: Storage[]
     uptime: number
     loadavg: number[]
-    gpu: GPU | undefined | null
+    gpu: GPU | null
     index: number
-    histories: StatusHistory[]
+    histories: HistoriesData[]
 }
 
 export interface StatusData {
@@ -60,9 +68,10 @@ export interface StatusData {
     version: string
     cpu: CPU
     ram: RAM
-    storage: Storage
-    storages: Storage[] | null
+    swap: Swap
+    storages: Storage[]
     uptime: number
     loadavg: number[]
-    gpu: GPU | undefined | null
+    gpu: GPU | null
+    histories: HistoriesData[]
 }
