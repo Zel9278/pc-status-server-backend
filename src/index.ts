@@ -9,6 +9,7 @@ const server = Server_io(client)
 
 const statusDatas: StatusData = {
     pass: null,
+    dev: false,
     _os: "OS Not Set",
     hostname: "hostname not set",
     version: "version not set",
@@ -47,12 +48,19 @@ server.on("connection", (socket: Socket) => {
                 clients[cli]?.hostname.includes(data.hostname)
             ).length > 0
         ) {
-            const filteredClients = Object.keys(clients)
-                .filter((cli) => clients[cli]?.hostname.includes(data.hostname))
-                .map((cli) => clients[cli])
-            //console.log(filteredClients.length)
-            data.index = filteredClients.length
-            data.hostname = `${data.hostname}_${data.index}`
+            if (data.dev) {
+                const filteredClients = Object.keys(clients)
+                    .filter((cli) =>
+                        clients[cli]?.hostname.includes(data.hostname)
+                    )
+                    .map((cli) => clients[cli])
+                //console.log(filteredClients.length)
+                data.index = filteredClients.length
+                data.hostname = `[DEV] ${data.hostname}_${data.index}`
+            } else {
+                socket.emit("close")
+                return socket.disconnect()
+            }
         }
 
         data.histories = []
@@ -77,11 +85,17 @@ server.on("connection", (socket: Socket) => {
     socket.on("sync", (data: StatusData) => {
         if (clients[socket.id]) {
             if (clients[socket.id].index > 0) {
-                const _clients = Object.keys(clients).filter((cli) =>
-                    clients[cli]?.hostname.includes(data.hostname)
-                )
-                data.index = _clients.findIndex((cli) => cli === socket.id)
-                data.hostname = `${data.hostname}_${clients[socket.id].index}`
+                if (data.dev) {
+                    const _clients = Object.keys(clients).filter((cli) =>
+                        clients[cli]?.hostname.includes(data.hostname)
+                    )
+                    data.index = _clients.findIndex((cli) => cli === socket.id)
+                    data.hostname = `[DEV] ${data.hostname}_${
+                        clients[socket.id].index
+                    }`
+                } else {
+                    return socket.disconnect()
+                }
             }
 
             clients[socket.id] = deepMarge(clients[socket.id], data)

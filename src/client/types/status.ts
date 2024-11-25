@@ -47,6 +47,7 @@ interface HistoriesData {
 }
 
 export interface StatusData {
+    dev?: boolean
     _os: string
     hostname: string
     version: string
@@ -63,6 +64,7 @@ export interface StatusData {
 
 export interface StatusData {
     pass: string | null
+    dev?: boolean
     _os: string
     hostname: string
     version: string
